@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { LogIn, LogOut, User } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import './index.css';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged 
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
 } from 'firebase/auth';
-import { signInWithGoogle } from "./firbase";
-import auth from "./firbase";
+import auth from './firebase';
 import { handleLoad } from './util';
-
-// Simulated authentication service
-
-
-
-
+import profile from './assets/profile.png';
 
 // Login Component
 const LoginPage = () => {
@@ -27,7 +21,10 @@ const LoginPage = () => {
     setLoading(true);
     setError("");
     try {
-      const user = await signInWithGoogle();
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
       const userData = {
         uid: user.uid,
         displayName: user.displayName,
@@ -38,7 +35,7 @@ const LoginPage = () => {
       localStorage.setItem('userData', JSON.stringify(userData));
       const token = await user.getIdToken();
       localStorage.setItem('userToken', token);
-      handleLoad()
+      // handleLoad();
     } catch (error) {
       setError("Failed to log in with Google.");
     } finally {
@@ -49,14 +46,14 @@ const LoginPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="p-6 bg-white shadow-md rounded-lg">
-        <h1 className="text-2xl font-bold text-center mb-4">Login</h1>
+        <h1 className="text-2xl font-bold text-center mb-4">Sign-in</h1>
         {error && <p className="text-red-500 text-center">{error}</p>}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
           className="w-full bg-blue-500 text-white hover:bg-blue-600"
         >
-          {loading ? "Logging in..." : "Login with Google"}
+          {loading ? "Signing in..." : "Sign-in with Google"}
         </button>
       </div>
     </div>
@@ -64,7 +61,7 @@ const LoginPage = () => {
 };
 
 // Dashboard Component
-const DashboardPage = ({ user, onLogout }) => {
+const DashboardPage = ({ user }) => {
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -85,21 +82,21 @@ const DashboardPage = ({ user, onLogout }) => {
     fetchUsers();
   }, [page]);
 
-
   const handleLogout = () => {
     localStorage.removeItem('userData');
     localStorage.removeItem('userToken');
     signOut(auth); // Firebase sign out
-    handleLoad()
+    handleLoad();
   };
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
-            <img 
-              src={user.photoURL} 
-              alt="Profile" 
+            <img
+              src={profile}
+              alt="Profile"
               className="w-10 h-10 rounded-full mr-3"
             />
             <div>
@@ -107,7 +104,7 @@ const DashboardPage = ({ user, onLogout }) => {
               <p className="text-gray-600 text-sm">{user.email}</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleLogout}
             className="flex items-center bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
           >
@@ -143,7 +140,7 @@ const DashboardPage = ({ user, onLogout }) => {
             </div>
 
             <div className="flex justify-center items-center mt-6 space-x-4">
-              <button 
+              <button
                 onClick={() => setPage(prev => Math.max(1, prev - 1))}
                 disabled={page === 1}
                 className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
@@ -151,7 +148,7 @@ const DashboardPage = ({ user, onLogout }) => {
                 Previous
               </button>
               <span>Page {page} of {totalPages}</span>
-              <button 
+              <button
                 onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={page === totalPages}
                 className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
@@ -171,12 +168,25 @@ const App = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    localStorage.getItem('userData') && setUser(JSON.parse(localStorage.getItem('userData')));
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const userData = {
+          uid: firebaseUser.uid,
+          displayName: firebaseUser.displayName,
+          email: firebaseUser.email,
+          photoURL: firebaseUser.photoURL
+        };
+        setUser(userData);
+      } else {
+        setUser(null);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
-  return user 
-    ? <DashboardPage user={user}  /> 
-    : <LoginPage  />;
+  return user ? <DashboardPage user={user} /> : <LoginPage />;
 };
 
 export default App;
