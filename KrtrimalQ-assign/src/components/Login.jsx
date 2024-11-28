@@ -6,8 +6,6 @@ import {
 import auth from '../firebase';
 import logo from '../assets/logo.svg'
 
-
-
 const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
