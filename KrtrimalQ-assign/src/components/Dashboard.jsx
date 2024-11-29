@@ -45,7 +45,7 @@ const DashboardPage = ({ user }) => {
       };
       try {
         const response = await axios.post(url, requestBody);
-        setUsersDetails({columns: cardDetails, data: response?.data?.data})
+        setUsersDetails({ columns: cardDetails, data: response?.data?.data })
       } catch (error) {
         console.error("Failed to fetch users", error);
       }
@@ -64,7 +64,7 @@ const DashboardPage = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen min-h-screen bg-gradient-to-br from-blue-100 to-indigo-100 p-6">
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
@@ -86,11 +86,21 @@ const DashboardPage = ({ user }) => {
             Logout
           </button>
         </div>
-        <div className='flex text-center text-xl text-white px-4 py-2 fw-md rounded bg-red-600 transition duration-300'>
+        <div className="bg-gradient-to-r from-indigo-300 to-blue-800  
+                    text-white 
+                    text-2xl 
+                    font-semibold 
+                    px-6 
+                    py-4 
+                    rounded-lg 
+                    shadow-md 
+                    text-center 
+                    opacity-90 
+                    mb-3">
           Welcome to Dashboard
         </div>
-        <TableComp users={usersList} title="User Details"/>
-        <TableComp users={usersDetails}  title="Card Details"/>
+        <TableComp users={usersList} title="User Details" />
+        <TableComp users={usersDetails} title="Card Details" />
 
       </div>
     </div>
