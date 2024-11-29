@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-} from 'firebase/auth';
-import auth from '../firebase';
+import  { signInWithGoogle } from '../firebase';
 import logo from '../assets/logo.svg'
 import googleIcon from '../assets/google.svg'
 
@@ -16,16 +12,17 @@ const LoginPage = () => {
       setLoading(true);
       setError("");
       try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
+       
+        const result = await signInWithGoogle();
         const user = result.user;
   
         const userData = {
-          uid: user.uid,
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
-          lastLogin: new Date().toISOString()
+          uid: updatedUser.uid,
+          displayName: updatedUser.displayName,
+          email: updatedUser.email,
+          photoURL: updatedUser.photoURL,
+          creationTime: updatedUser.metadata.creationTime,
+          lastSignInTime: updatedUser.metadata.lastSignInTime,
         };
         localStorage.setItem('userData', JSON.stringify(userData));
         const token = await user.getIdToken();
